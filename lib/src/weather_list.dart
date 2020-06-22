@@ -106,9 +106,14 @@ class _WeatherListState extends State<WeatherList> {
     _loadWeather();
   }
 
+  _showDetails(ListData data){
+    return null;
+  }
+
   List<Widget> _buildList() {
       return dataList.list.map((ListData data) =>
           ListTile(
+            onTap: () => _showDetails(data),
             title: Text(data.dtTxt),
             subtitle: Text(data.weather.description),
             leading: CircleAvatar(
