@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutterproarea/src/WeatherData.dart';
+import 'package:flutterproarea/src/weather_data.dart';
 import 'api_key.dart';
 
 

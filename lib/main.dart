@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'src/ProAreaApp.dart';
+import 'src/pro_area_app.dart';
 
 void main() {
   runApp(new MaterialApp(

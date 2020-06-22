@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutterproarea/src/WeatherList.dart';
+import 'package:flutterproarea/src/weather_list.dart';
 
 class ProAreaApp extends StatelessWidget {
   @override

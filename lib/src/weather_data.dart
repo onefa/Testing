@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-part 'WeatherData.g.dart';
+part 'weather_data.g.dart';
 
 @JsonSerializable()
 class WeatherData {
@@ -23,6 +23,8 @@ class WeatherData {
 class ListData {
   Main main;
   Wind wind;
+  Rain rain;
+  Snow snow;
 
   @JsonKey(name: 'dt_txt')
   String dtTxt;
@@ -32,7 +34,7 @@ class ListData {
   @JsonKey(ignore: true)
   Weather weather;
 
-  ListData(this.main, this.weatherList, this.wind, this.dtTxt){
+  ListData(this.main, this.weatherList, this.wind, this.rain, this.snow, this.dtTxt){
     weather = Weather.fromJson(weatherList[0]);
   }
   factory ListData.fromJson(Map<String, dynamic> json) => _$ListDataFromJson(json);
@@ -96,6 +98,26 @@ class Wind{
   Wind(this.speed, this.deg);
   factory Wind.fromJson(Map<String, dynamic> json) => _$WindFromJson(json);
 }
+
+@JsonSerializable()
+class Rain{
+  @JsonKey(name: '3h')
+  double x3h;
+
+  Rain(this.x3h);
+  factory Rain.fromJson(Map<String, dynamic> json) => _$RainFromJson(json);
+}
+
+@JsonSerializable()
+class Snow{
+  @JsonKey(name: '3h')
+  double x3h;
+
+  Snow(this.x3h);
+  factory Snow.fromJson(Map<String, dynamic> json) => _$SnowFromJson(json);
+}
+
+
 
 @JsonSerializable()
 class City {
