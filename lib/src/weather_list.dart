@@ -1,10 +1,13 @@
 import 'dart:ui';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:flutterproarea/src/weather_base_item.dart';
 import 'package:flutterproarea/src/weather_data.dart';
-import 'api_key.dart';
+import 'package:flutterproarea/src/full_data_view.dart';
+import 'package:flutterproarea/src/api_key.dart';
+import 'package:flutterproarea/src/db.dart';
 
 
 class WeatherList extends StatefulWidget {
@@ -17,7 +20,9 @@ class WeatherList extends StatefulWidget {
 }
 
 class _WeatherListState extends State<WeatherList> {
-  WeatherData dataList = WeatherData.start();
+  int userID = 0;
+  List<WeatherDBItem> dataList = [];
+
   String language = 'ru';
   String cityName = '';
 
@@ -64,11 +69,8 @@ class _WeatherListState extends State<WeatherList> {
 
       ),
 
-      body: Container(
-        child: ListView(
-          children: _buildList(),
-        ),
-      ),
+      body: _buildList(),
+
       floatingActionButton: FloatingActionButton.extended(
         label: Text('User'),
         onPressed: () => _changeUser(),
@@ -86,10 +88,24 @@ class _WeatherListState extends State<WeatherList> {
             + language + '&units=metric');
     if (response.statusCode == 200) {
       Map weatherDataJson = jsonDecode(response.body);
-      setState(() {
-        dataList = WeatherData.fromJson(weatherDataJson);
-      });
-    }
+      DB.transferToBase(WeatherData.fromJson(weatherDataJson), userID);
+
+      await DB.transferFromBase(cityName).then((listFromBase) => getData(listFromBase));
+
+      }
+
+
+  }
+
+  getData(List<WeatherDBItem> listFromBase) {
+
+    listFromBase.forEach((element) {
+      print('GET DATA: ' + element.toMap().toString());
+    });
+    setState(() {
+      dataList.addAll(listFromBase);
+    });
+
   }
 
   _changeCity(String cityName) {
@@ -106,22 +122,28 @@ class _WeatherListState extends State<WeatherList> {
     _loadWeather();
   }
 
-  _showDetails(ListData data){
-    return null;
+  ListView _buildList() {
+      return ListView.builder(
+          itemCount: dataList == null ? 0 : dataList.length,
+          itemBuilder: (BuildContext context, int index) {
+            WeatherDBItem data = dataList[index];
+            return ListTile(
+              onTap: () =>
+                  Navigator.push(context,
+                      MaterialPageRoute(
+                          builder: (context) => FullDataView(data))),
+              title: Text(data.date),
+              subtitle: Text(data.description),
+              leading: CircleAvatar(
+                  backgroundColor: Colors.lightBlue,
+                  child: Text(data.temperature.toString())),
+              trailing: CircleAvatar(
+                  backgroundColor: Colors.lightBlueAccent,
+                  child: Text(data.temperature.toString())),
+            );
+          }
+      );
   }
 
-  List<Widget> _buildList() {
-      return dataList.list.map((ListData data) =>
-          ListTile(
-            onTap: () => _showDetails(data),
-            title: Text(data.dtTxt),
-            subtitle: Text(data.weather.description),
-            leading: CircleAvatar(
-                backgroundColor: Colors.lightBlue,
-                child: Text(data.main.tempMin.toString())),
-            trailing: CircleAvatar(
-                backgroundColor: Colors.lightBlueAccent,
-                child: Text(data.main.tempMax.toString())),
-          )).toList();
-  }
+
 }

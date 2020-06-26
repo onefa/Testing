@@ -27,6 +27,8 @@ dependencies:
   json_annotation: ^3.0.1
   sqflite: ^1.2.0
   path_provider: ^1.6.0
+  path: any
+  flutter_splash_screen: ^0.1.0
 
 
   # The following adds the Cupertino Icons font to your application.

@@ -57,8 +57,8 @@ Main _$MainFromJson(Map<String, dynamic> json) {
     (json['feels_like'] as num)?.toDouble(),
     (json['temp_min'] as num)?.toDouble(),
     (json['temp_max'] as num)?.toDouble(),
-    (json['pressure'] as num)?.toDouble(),
-    (json['humidity'] as num)?.toDouble(),
+    json['pressure'] as int,
+    json['humidity'] as int,
   );
 }
 

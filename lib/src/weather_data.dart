@@ -62,15 +62,15 @@ class Main {
   @JsonKey(ignore: true)
   int tempMax;
 
-  double pressure;
-  double humidity;
+  int pressure;
+  int humidity;
 
   Main(this.doubleTemp,
-      this.doubleFeelslike,
-      this.doubleTempMin,
-      this.doubleTempMax,
-      this.pressure,
-      this.humidity) {
+       this.doubleFeelslike,
+       this.doubleTempMin,
+       this.doubleTempMax,
+       this.pressure,
+       this.humidity) {
 
     this.temp = (doubleTemp).round();
     this.feelsLike = (doubleFeelslike).round();
