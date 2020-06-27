@@ -4,13 +4,14 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterproarea/src/weather_base_item.dart';
-import 'package:flutterproarea/src/weather_data.dart';
+import 'package:flutterproarea/src/weather_api_data.dart';
 import 'package:flutterproarea/src/full_data_view.dart';
 import 'package:flutterproarea/src/api_key.dart';
 import 'package:flutterproarea/src/db.dart';
 
 
 class WeatherList extends StatefulWidget {
+  static String cityName = '';
 
   @override
   State<StatefulWidget> createState() {
@@ -21,10 +22,9 @@ class WeatherList extends StatefulWidget {
 
 class _WeatherListState extends State<WeatherList> {
   int userID = 0;
-  List<WeatherDBItem> dataList = [];
+  List<WeatherDBItem> dataList;
 
   String language = 'ru';
-  String cityName = '';
 
 
   @override
@@ -83,14 +83,17 @@ class _WeatherListState extends State<WeatherList> {
     String appID = ApiKey().key;
     final response = await http.get(
         'http://api.openweathermap.org/data/2.5/forecast?q='
-            + cityName.toString() + '&APPID='
+            + WeatherList.cityName.toString() + '&APPID='
             + appID + '&lang='
             + language + '&units=metric');
     if (response.statusCode == 200) {
       Map weatherDataJson = jsonDecode(response.body);
+
+      // For correct display ru/en names of city WeatherList.cityName value
+      // changes within DB.transferToBase on actual
       DB.transferToBase(WeatherData.fromJson(weatherDataJson), userID);
 
-      await DB.transferFromBase(cityName).then((listFromBase) => getData(listFromBase));
+      await DB.transferFromBase(WeatherList.cityName).then((listFromBase) => getData(listFromBase));
 
       }
 
@@ -102,6 +105,9 @@ class _WeatherListState extends State<WeatherList> {
     listFromBase.forEach((element) {
       print('GET DATA: ' + element.toMap().toString());
     });
+
+
+    dataList = [];
     setState(() {
       dataList.addAll(listFromBase);
     });
@@ -109,7 +115,7 @@ class _WeatherListState extends State<WeatherList> {
   }
 
   _changeCity(String cityName) {
-    this.cityName = cityName;
+    WeatherList.cityName = cityName;
     _loadWeather();
   }
 
@@ -118,6 +124,7 @@ class _WeatherListState extends State<WeatherList> {
   }
 
   _changeLanguage() {
+//    DB.db.close();
     language == 'ru' ? language = 'en' : language = 'ru';
     _loadWeather();
   }

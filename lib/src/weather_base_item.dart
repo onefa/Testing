@@ -1,8 +1,10 @@
 import 'package:flutterproarea/src/db.dart';
+import 'package:path/path.dart';
 
 class WeatherDBItem {
 
   String city;
+  int cityID;
   int userID;
   String date;
   String description;
@@ -16,6 +18,7 @@ class WeatherDBItem {
 
   WeatherDBItem({
       this.city,
+      this.cityID,
       this.userID,
       this.date,
       this.description,
@@ -29,34 +32,37 @@ class WeatherDBItem {
 
   Map<String, dynamic> toMap() {
     return {
-      DB.cityTEXT: city,
-      DB.userIDINTEGER: userID,
-      DB.dateTEXT: date,
-      DB.descriptionTEXT: description,
-      DB.temperatureINTEGER: temperature,
-      DB.windSpeedREAL: windSpeed,
-      DB.windDegreeINTEGER: windDegree,
-      DB.rainREAL: rain,
-      DB.snowREAL: snow,
-      DB.pressureINTEGER: pressure,
-      DB.humidityINTEGER: humidity,
+      DB.city: city,
+      DB.cityID: cityID,
+      DB.userID: userID,
+      DB.date: date,
+      DB.description: description,
+      DB.temperature: temperature,
+      DB.windSpeed: windSpeed,
+      DB.windDegree: windDegree,
+      DB.rain: rain,
+      DB.snow: snow,
+      DB.pressure: pressure,
+      DB.humidity: humidity,
+      DB.dateCityID: join(date.toString(), cityID.toString())
     };
   }
 
 
   factory WeatherDBItem.fromMap(Map<String, dynamic> map) =>
     WeatherDBItem(
-        city: map[DB.cityTEXT],
-        userID: map[DB.userIDINTEGER],
-        date: map[DB.dateTEXT],
-        description: map[DB.descriptionTEXT],
-        temperature: map[DB.temperatureINTEGER],
-        windSpeed: map[DB.windSpeedREAL],
-        windDegree: map[DB.windDegreeINTEGER],
-        rain: map[DB.rainREAL],
-        snow: map[DB.snowREAL],
-        pressure: map[DB.pressureINTEGER],
-        humidity: map[DB.humidityINTEGER],
+        city: map[DB.city],
+        cityID: map[DB.cityID],
+        userID: map[DB.userID],
+        date: map[DB.date],
+        description: map[DB.description],
+        temperature: map[DB.temperature],
+        windSpeed: map[DB.windSpeed],
+        windDegree: map[DB.windDegree],
+        rain: map[DB.rain],
+        snow: map[DB.snow],
+        pressure: map[DB.pressure],
+        humidity: map[DB.humidity],
     );
 
 
