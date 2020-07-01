@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:core';
+import 'package:flutter/cupertino.dart';
 import 'package:flutterproarea/src/weather_list.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -75,12 +76,28 @@ class DB {
   static Future<List<WeatherDBItem>> _getfromDB(String field, List value) async {
     final db = await database;
 
-    final List<Map<String, dynamic>> maps = await db.query(weatherBase,
+    List<WeatherDBItem> outList = [];
+    List<Map<String, dynamic>> maps = await db.query(weatherBase,
                                                            where: '$field=?',
                                                            whereArgs: value,
                                                            );
 
-    List<WeatherDBItem> outList = [];
+    maps.forEach((element) {
+      outList.add(WeatherDBItem.fromMap(element));
+    });
+
+    List<int> searchID = [];
+    outList.forEach((element) {
+      if (!searchID.contains(element.cityID)) {
+        searchID.add(element.cityID);
+      }
+    });
+
+    maps = await db.query(weatherBase,
+        where: '$cityID=?',
+        whereArgs: searchID,
+    );
+    outList = [];
     maps.forEach((element) {
       outList.add(WeatherDBItem.fromMap(element));
     });
@@ -94,8 +111,8 @@ class DB {
   static transferToBase(WeatherData _dataFromAPI, int userID) {
     List<WeatherDBItem> _translateResult = [];
     _dataFromAPI.list.forEach((listItem) {
-      if (WeatherList.cityName != _dataFromAPI.city.name) {
-        WeatherList.cityName = _dataFromAPI.city.name;
+      if (WeatherList.cityID != _dataFromAPI.city.id) {
+        WeatherList.cityID = _dataFromAPI.city.id;
       }
 
       _translateResult.add(WeatherDBItem(

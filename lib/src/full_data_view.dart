@@ -8,6 +8,7 @@ class FullDataView extends StatelessWidget {
 
   FullDataView(this.fullData);
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,7 +25,8 @@ class FullDataView extends StatelessWidget {
               Text('Pressure: ' + fullData.pressure.toString()),
               Text('Temperature: ' + fullData.temperature.toString()),
 
-            ],
+
+      ],
           )
       ),
     );

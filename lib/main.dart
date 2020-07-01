@@ -1,13 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_splash_screen/flutter_splash_screen.dart';
+import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:flutterproarea/src/authorization.dart';
 import 'package:flutterproarea/src/pro_area_app.dart';
 
-void main() {
+Future<void> main() async {
+//  WidgetsFlutterBinding.ensureInitialized();
+//  await AndroidAlarmManager.initialize();
+
   runApp(new MaterialApp(
-    home: new MyApp(),
+    home: AutorizationPage(),
   ));
 }
+
 
 class MyApp extends StatefulWidget {
   @override
@@ -39,4 +44,7 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+
+
+
 

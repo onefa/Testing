@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:android_alarm_manager/android_alarm_manager.dart';
+
 import 'package:flutterproarea/src/weather_base_item.dart';
 import 'package:flutterproarea/src/weather_api_data.dart';
 import 'package:flutterproarea/src/full_data_view.dart';
@@ -12,7 +14,9 @@ import 'package:flutterproarea/src/db.dart';
 
 class WeatherList extends StatefulWidget {
   static String cityName = '';
-
+  static int cityID;
+  static int userID = 27;
+  static int apiAlarmID;
   @override
   State<StatefulWidget> createState() {
     return _WeatherListState();
@@ -20,11 +24,37 @@ class WeatherList extends StatefulWidget {
 
 }
 
+Future<void> getFromAPIBackground(int cityID) async {
+  print ('START BACKGROUND DATA');
+  if (cityID != null) {
+    String appID = ApiKey().key;
+    print('''Get from api 'http://api.openweathermap.org/data/2.5/forecast?id=$cityID&APPID=$appID&units=metric' ''');
+
+  final response = await http.get(
+      'http://api.openweathermap.org/data/2.5/forecast?id=$cityID&APPID=$appID&units=metric');
+    if (response.statusCode == 200) {
+      Map weatherDataJson = jsonDecode(response.body);
+      String nnn = WeatherList.cityName.toString();
+      print('Make from back $nnn');
+      // For correct display ru/en names of city WeatherList.cityName value
+      // changes within DB.transferToBase on actual
+      DB.transferToBase(WeatherData.fromJson(weatherDataJson), WeatherList.userID);
+      print('SAVED!!! UID: ' + WeatherList.userID.toString());
+
+    }
+
+
+  }
+
+}
+
+
 class _WeatherListState extends State<WeatherList> {
-  int userID = 0;
+
   List<WeatherDBItem> dataList;
 
   String language = 'ru';
+
 
 
   @override
@@ -80,27 +110,32 @@ class _WeatherListState extends State<WeatherList> {
 
 
   _loadWeather() async {
+
     String appID = ApiKey().key;
-    final response = await http.get(
-        'http://api.openweathermap.org/data/2.5/forecast?q='
-            + WeatherList.cityName.toString() + '&APPID='
-            + appID + '&lang='
-            + language + '&units=metric');
+    final response = await http.get('http://api.openweathermap.org/data/2.5/forecast?q='
+        + WeatherList.cityName.toString() + '&APPID='
+        + appID + '&lang='
+        + language + '&units=metric');
     if (response.statusCode == 200) {
-      Map weatherDataJson = jsonDecode(response.body);
+          Map weatherDataJson = jsonDecode(response.body);
 
-      // For correct display ru/en names of city WeatherList.cityName value
-      // changes within DB.transferToBase on actual
-      DB.transferToBase(WeatherData.fromJson(weatherDataJson), userID);
+          // For correct display ru/en names of city WeatherList.cityName value
+          // changes within DB.transferToBase on actual
+          DB.transferToBase(WeatherData.fromJson(weatherDataJson), WeatherList.userID);
+    }
 
-      await DB.transferFromBase(WeatherList.cityName).then((listFromBase) => getData(listFromBase));
-
-      }
-
+    if (WeatherList.apiAlarmID != null) {
+      await AndroidAlarmManager.cancel(WeatherList.apiAlarmID);
+    }
+    WeatherList.apiAlarmID = WeatherList.cityID;
+    await AndroidAlarmManager.periodic(Duration(seconds: 10), WeatherList.apiAlarmID, getFromAPIBackground);
+    getData();
 
   }
 
-  getData(List<WeatherDBItem> listFromBase) {
+
+  getData() async {
+    List<WeatherDBItem> listFromBase = await DB.transferFromBase(WeatherList.cityName);
 
     listFromBase.forEach((element) {
       print('GET DATA: ' + element.toMap().toString());
@@ -116,6 +151,7 @@ class _WeatherListState extends State<WeatherList> {
 
   _changeCity(String cityName) {
     WeatherList.cityName = cityName;
+    getData();
     _loadWeather();
   }
 
@@ -154,3 +190,4 @@ class _WeatherListState extends State<WeatherList> {
 
 
 }
+
