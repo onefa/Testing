@@ -1,11 +1,17 @@
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterproarea/src/api_key.dart';
+import 'package:flutterproarea/src/auth.dart';
+import 'package:flutterproarea/src/pro_area_app.dart';
+import 'package:flutterproarea/src/weather_base_item.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_facebook_login/flutter_facebook_login.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as JSON;
+import 'package:flutterproarea/src/w_styles.dart';
 
 class AutorizationPage extends StatefulWidget {
   AutorizationPage({Key key}) : super (key: key);
@@ -29,21 +35,82 @@ class _AutorizationPageState extends State<AutorizationPage> {
 
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
+  TextEditingController _confirmPasswordController = TextEditingController();
   String _email;
   String _password;
+  String _confirmPassword;
   bool showLogin = true;
   bool isFBLoggedIn = false;
+  AuthService _authService = AuthService();
 
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: WStyles.mainBackColor,
       body: Column(
         children: <Widget>[
           _logo(),
-          _form('Login', _buttonAction),
+          (
+          showLogin
+              ? Column(
+                children: <Widget>[
+                  _form('Login', _loginButton),
+                  Padding(
+                    padding: EdgeInsets.all(10),
+                    child: GestureDetector(
+                      child: Text('Not registered yet? Register',
+                             style: WStyles.inputFieldTextStyle,),
+                      onTap:() =>
+                        setState(() {
+                        showLogin = false;
+                        }),
+                    ),
+                  )
+                ],
+                )
+              : Column(
+                children: <Widget>[
+                  _form('Register', _registerButton),
+                  Padding(
+                    padding: EdgeInsets.all(10),
+                    child: GestureDetector(
+                      child: Text('Already registered? Login',
+                        style: WStyles.inputFieldTextStyle,),
+                      onTap:() =>
+                          setState(() {
+                            showLogin = true;
+                          }),
+                    ),
+                  )
+                ],
+                )
+          ),
         ],
       ),
+
+    persistentFooterButtons: <Widget>[
+        RaisedButton (
+          child: Text('Free', style: WStyles.buttonLightTextStyle,),
+          color: WStyles.buttonBackColor,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          onPressed: () => _logOut(),
+        ),
+      SizedBox(width: 40,),
+      FloatingActionButton.extended(
+        label: Text('facebook', style: WStyles.buttonLightTextStyle,),
+        onPressed: () => _loginFacebook(),
+        ),
+      FloatingActionButton.extended(
+        label: Text('Google', style: WStyles.buttonLightTextStyle,),
+        onPressed: () => _loginGoogle(),
+      ),
+
+      ],
+
+
+
     );
   }
 
@@ -52,8 +119,9 @@ class _AutorizationPageState extends State<AutorizationPage> {
       padding: EdgeInsets.only(top: 90),
       child: Container(
         child: Align(
-          child: Text('ProArea',
-          style: TextStyle(fontSize: 45, fontWeight: FontWeight.bold),),
+          child: Text('WeatherBase',
+          style: WStyles.titleTextStyle,
+          ),
         ),
       ),
     );
@@ -62,14 +130,23 @@ class _AutorizationPageState extends State<AutorizationPage> {
   Widget _form(String label, void func()) {
     return Container(
       child: Column(
-        children: <Widget>[
+        children:
+        <Widget>[
           Padding(
             padding: EdgeInsets.only(top: 10),
-            child: _input('email', _emailController, false),
+            child: _input(Icon(Icons.email), 'email', _emailController, false),
           ),
           Padding(
             padding: EdgeInsets.only(top: 10),
-            child: _input('password', _passwordController, true),
+            child: _input(Icon(Icons.lock_outline),'password', _passwordController, true),
+          ),
+          (
+          showLogin
+          ? SizedBox(height: 2,)
+          : Padding(
+            padding: EdgeInsets.only(top: 10),
+            child: _input(Icon(Icons.lock_outline),'confirm password', _confirmPasswordController, true),
+            )
           ),
           SizedBox(height: 20,),
           Padding(
@@ -77,72 +154,50 @@ class _AutorizationPageState extends State<AutorizationPage> {
             child: Container(
               height: 50,
               width: MediaQuery.of(context).size.width,
-              child: button(label, func),
+              child: _button(label, func),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.only(top: 10, left: 20, right: 20),
-            child: Container(
-              height: 50,
-              width: MediaQuery.of(context).size.width,
-              child: RaisedButton(
-                onPressed: () => doLogin(),
-                child: Text('Login with Google'),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(top: 10, left: 20, right: 20),
-            child: Container(
-              height: 50,
-              width: MediaQuery.of(context).size.width,
-              child: RaisedButton(
-                onPressed: () => initiateFacebookLogin(),
-                child: Text('Login with facebook'),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(top: 10),
-            child: RaisedButton(
-              onPressed: () => doLogout(),
-              child: Text('LoOUT Google'),
-            ),
-          ),
-          SizedBox(height: 20,),
-
         ],
       ),
+
     );
   }
 
-  Widget _input(String hint, TextEditingController controller, bool obscure) {
+  Widget _input(Icon icon, String hint, TextEditingController controller, bool obscure) {
     return Container(
       padding: EdgeInsets.only(right: 20, left: 20),
       child: TextField(
         controller: controller,
         obscureText: obscure,
-        style: TextStyle(fontSize: 20),
+        style: WStyles.inputFieldTextStyle,
         decoration: InputDecoration(
-          hintStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.black38),
+          hintStyle: WStyles.inputFieldHintTextStyle,
           hintText: hint,
           focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.blueAccent, width: 3)
+            borderSide: WStyles.borderFocusSide
           ),
           enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.blue, width: 1)
+            borderSide: WStyles.borderEnabledSide
           ),
+          prefixIcon: Padding(
+            padding: EdgeInsets.only(left: 10, right: 10),
+            child: IconTheme(
+              data: IconThemeData(color: WStyles.lightDecorColor),
+              child: icon,
+            ),
+          )
         ),
       ),
     );
   }
 
-  Widget button(String label, void func()) {
+  Widget _button(String label, void func()) {
     return RaisedButton(
-      splashColor: Colors.grey,
-      highlightColor: Colors.lightBlue,
+      color: WStyles.buttonBackColor,
+      splashColor: WStyles.buttonSplashColor,
+      highlightColor: WStyles.buttonHighlightColor,
       child: Text(label,
-        style: TextStyle(fontSize: 20),
+        style: WStyles.buttonDarkTextStyle,
       ),
       onPressed: () {
         func();
@@ -150,28 +205,54 @@ class _AutorizationPageState extends State<AutorizationPage> {
     );
   }
 
-  void _buttonAction() {
+  _loginButton() async {
     _email = _emailController.text;
     _password = _passwordController.text;
+    User user = await _authService.singInFirebase(_email, _password);
+    if (user != null) {
+      Fluttertoast.showToast(msg: 'Signed!', toastLength: Toast.LENGTH_SHORT);
+      return ProAreaApp();
+    }
+    Fluttertoast.showToast(msg: "Can't sing in.");
 
-    _emailController.clear();
-    _passwordController.clear();
   }
 
-  void doLogin() async {
+  _registerButton() async {
+    _email = _emailController.text;
+    _password = _passwordController.text;
+    _confirmPassword = _confirmPasswordController.text;
+    if (_confirmPassword != _password) {
+        _confirmPasswordController.clear();
+        _passwordController.clear();
+        Fluttertoast.showToast(msg: 'Password not equal confirm string!');
+        return;
+    }
+    User user = await _authService.registerInFirebase(_email, _password);
+    if (user != null) {
+      return ProAreaApp();
+    }
+    _emailController.clear();
+    _confirmPasswordController.clear();
+    _passwordController.clear();
+
+    return;
+  }
+
+  void _loginGoogle() async {
     //showLoading();
     await _googleSignIn.signIn();
-    initLogin();
+    _initLogin();
   }
 
-  void doLogout() async {
+  void _logOut() async {
     //showLoading();
       await _googleSignIn.signOut();
       await facebookLogin.logOut();
+      await _authService.logOutFirebase();
   }
 
 
-  initLogin() {
+  void _initLogin() {
     _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) async {
       if (account != null) {
         print ('Account enabled with hashCode: $account.hashCode');
@@ -181,10 +262,10 @@ class _AutorizationPageState extends State<AutorizationPage> {
         // user NOT logged
       }
     });
-    _googleSignIn.signInSilently().whenComplete(() => dismissLoading());
+    _googleSignIn.signInSilently().whenComplete(() => _dismissLoading());
   }
 
-  dismissLoading() {
+  void _dismissLoading() {
     String uName = _googleSignIn.currentUser.displayName.toString();
     String uHCode = _googleSignIn.currentUser.hashCode.toString();
     String uID = _googleSignIn.currentUser.id.toString();
@@ -194,17 +275,17 @@ class _AutorizationPageState extends State<AutorizationPage> {
     print ('Dismiss Loading uID: $uID');
   }
 
-  void initiateFacebookLogin() async {
+  void _loginFacebook() async {
     var facebookLoginResult =
     await facebookLogin.logInWithReadPermissions(["email"]);
     switch (facebookLoginResult.status) {
       case FacebookLoginStatus.error:
         print("FBError");
-        onLoginStatusChanged(false);
+        _onLoginStatusChanged(false);
         break;
       case FacebookLoginStatus.cancelledByUser:
         print("FBCancelledByUser");
-        onLoginStatusChanged(false);
+        _onLoginStatusChanged(false);
         break;
       case FacebookLoginStatus.loggedIn:
         print("FBLoggedIn");
@@ -213,12 +294,12 @@ class _AutorizationPageState extends State<AutorizationPage> {
         final profile = JSON.jsonDecode(graphResponse.body);
         print(profile);
 
-        onLoginStatusChanged(true);
+        _onLoginStatusChanged(true);
         break;
     }
   }
 
-  void onLoginStatusChanged(bool isLoggedIn) {
+  void _onLoginStatusChanged(bool isLoggedIn) {
     setState(() {
       this.isFBLoggedIn = isLoggedIn;
     });

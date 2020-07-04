@@ -1,8 +1,8 @@
 import 'package:json_annotation/json_annotation.dart';
-part 'weather_data.g.dart';
+part 'weather_api_data.g.dart';
 
 @JsonSerializable()
-class WeatherData {
+class WeatherAPIData {
   int cnt;
   City city;
   @JsonKey(name: 'list')
@@ -10,13 +10,13 @@ class WeatherData {
   @JsonKey(ignore: true)
   List<ListData> list = [];
 
-  WeatherData.start() : this.list = [];
-  WeatherData(this.cnt, this.city, this.listItem){
+  WeatherAPIData.start() : this.list = [];
+  WeatherAPIData(this.cnt, this.city, this.listItem){
     for (int i = 0; i < cnt; i++) {
       list.add(ListData.fromJson(listItem[i]));
     }
   }
-  factory WeatherData.fromJson(Map<String, dynamic> json) => _$WeatherDataFromJson(json);
+  factory WeatherAPIData.fromJson(Map<String, dynamic> json) => _$WeatherDataFromJson(json);
 }
 
 @JsonSerializable()

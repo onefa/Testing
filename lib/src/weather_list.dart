@@ -38,7 +38,7 @@ Future<void> getFromAPIBackground(int cityID) async {
       print('Make from back $nnn');
       // For correct display ru/en names of city WeatherList.cityName value
       // changes within DB.transferToBase on actual
-      DB.transferToBase(WeatherData.fromJson(weatherDataJson), WeatherList.userID);
+      DB.transferToBase(WeatherAPIData.fromJson(weatherDataJson), WeatherList.userID);
       print('SAVED!!! UID: ' + WeatherList.userID.toString());
 
     }
@@ -59,6 +59,7 @@ class _WeatherListState extends State<WeatherList> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: TextFormField(
@@ -112,16 +113,22 @@ class _WeatherListState extends State<WeatherList> {
   _loadWeather() async {
 
     String appID = ApiKey().key;
+    print ('http://api.openweathermap.org/data/2.5/forecast?q='
+        + WeatherList.cityName.toString() + '&APPID='
+        + appID + '&lang='
+        + language + '&units=metric');
     final response = await http.get('http://api.openweathermap.org/data/2.5/forecast?q='
         + WeatherList.cityName.toString() + '&APPID='
         + appID + '&lang='
         + language + '&units=metric');
     if (response.statusCode == 200) {
           Map weatherDataJson = jsonDecode(response.body);
+          print('+++++ GET 200 +++++');
 
           // For correct display ru/en names of city WeatherList.cityName value
           // changes within DB.transferToBase on actual
-          DB.transferToBase(WeatherData.fromJson(weatherDataJson), WeatherList.userID);
+          DB.transferToBase(WeatherAPIData.fromJson(weatherDataJson), WeatherList.userID);
+          print('transfer to base');
     }
 
     if (WeatherList.apiAlarmID != null) {
@@ -135,7 +142,7 @@ class _WeatherListState extends State<WeatherList> {
 
 
   getData() async {
-    List<WeatherDBItem> listFromBase = await DB.transferFromBase(WeatherList.cityName);
+    List<WeatherDBItem> listFromBase = await DB.transferFromBase(WeatherList.cityID);
 
     listFromBase.forEach((element) {
       print('GET DATA: ' + element.toMap().toString());

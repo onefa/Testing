@@ -85,7 +85,7 @@ class DB {
     maps.forEach((element) {
       outList.add(WeatherDBItem.fromMap(element));
     });
-
+/*
     List<int> searchID = [];
     outList.forEach((element) {
       if (!searchID.contains(element.cityID)) {
@@ -101,19 +101,20 @@ class DB {
     maps.forEach((element) {
       outList.add(WeatherDBItem.fromMap(element));
     });
-
+*/
     return outList;
 
   }
 
 
 
-  static transferToBase(WeatherData _dataFromAPI, int userID) {
+  static transferToBase(WeatherAPIData _dataFromAPI, int userID) {
     List<WeatherDBItem> _translateResult = [];
     _dataFromAPI.list.forEach((listItem) {
       if (WeatherList.cityID != _dataFromAPI.city.id) {
         WeatherList.cityID = _dataFromAPI.city.id;
       }
+      WeatherList.cityName = _dataFromAPI.city.name;
 
       _translateResult.add(WeatherDBItem(
         city: _dataFromAPI.city.name,
@@ -137,11 +138,11 @@ class DB {
   }
 
 
-  static Future<List<WeatherDBItem>> transferFromBase(String city) async {
-    List cityName = [];
-    cityName.add(city);
+  static Future<List<WeatherDBItem>> transferFromBase(int cityID) async {
+    List cityIDs = [];
+    cityIDs.add(cityID);
 
-    return await _getfromDB(DB.city, cityName);
+    return await _getfromDB(DB.cityID, cityIDs);
 
   }
 

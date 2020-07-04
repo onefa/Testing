@@ -6,7 +6,7 @@ class ProAreaApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'ProArea Weather',
+        title: 'WeatherBase',
         theme: ThemeData(
         primarySwatch: Colors.blueGrey
       ),

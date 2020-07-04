@@ -1,5 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutterproarea/src/db.dart';
 import 'package:path/path.dart';
+
+class User {
+  String outerID;
+  int innerID;
+
+  User.fromFirebase(FirebaseUser user) {
+    outerID = user.uid;
+  }
+}
 
 class WeatherDBItem {
 
@@ -64,6 +74,5 @@ class WeatherDBItem {
         pressure: map[DB.pressure],
         humidity: map[DB.humidity],
     );
-
 
 }
