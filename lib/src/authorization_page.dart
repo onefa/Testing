@@ -1,17 +1,11 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterproarea/src/api_key.dart';
-import 'package:flutterproarea/src/auth.dart';
-import 'package:flutterproarea/src/pro_area_app.dart';
+import 'package:flutterproarea/src/authorization_service.dart';
 import 'package:flutterproarea/src/weather_base_item.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_facebook_login/flutter_facebook_login.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert' as JSON;
 import 'package:flutterproarea/src/w_styles.dart';
+
 
 class AutorizationPage extends StatefulWidget {
   AutorizationPage({Key key}) : super (key: key);
@@ -22,16 +16,11 @@ class AutorizationPage extends StatefulWidget {
 
 class _AutorizationPageState extends State<AutorizationPage> {
 
+  @override
+  void initState () {
+    super.initState();
+  }
 
-  FacebookLogin facebookLogin = FacebookLogin();
-
-  GoogleSignIn _googleSignIn = new GoogleSignIn(
-  //  scopes: [
-    //  'email',
-    //  'https://www.googleapis.com/auth/contacts.readonly',
-  //  ],
-    clientId: ApiKey().clientID,
-  );
 
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
@@ -40,12 +29,13 @@ class _AutorizationPageState extends State<AutorizationPage> {
   String _password;
   String _confirmPassword;
   bool showLogin = true;
-  bool isFBLoggedIn = false;
+  //bool isFBLoggedIn = false;
   AuthService _authService = AuthService();
 
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: WStyles.mainBackColor,
       body: Column(
@@ -90,15 +80,16 @@ class _AutorizationPageState extends State<AutorizationPage> {
       ),
 
     persistentFooterButtons: <Widget>[
-        RaisedButton (
-          child: Text('Free', style: WStyles.buttonLightTextStyle,),
-          color: WStyles.buttonBackColor,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10))),
-          onPressed: () => _logOut(),
-        ),
+      RaisedButton (
+        child: Text('Free', style: WStyles.buttonLightTextStyle,),
+        color: WStyles.buttonBackColor,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10))),
+        onPressed: () => _signFree(),
+      ),
       SizedBox(width: 40,),
       FloatingActionButton.extended(
+        heroTag: Text(''),
         label: Text('facebook', style: WStyles.buttonLightTextStyle,),
         onPressed: () => _loginFacebook(),
         ),
@@ -106,10 +97,7 @@ class _AutorizationPageState extends State<AutorizationPage> {
         label: Text('Google', style: WStyles.buttonLightTextStyle,),
         onPressed: () => _loginGoogle(),
       ),
-
       ],
-
-
 
     );
   }
@@ -205,15 +193,48 @@ class _AutorizationPageState extends State<AutorizationPage> {
     );
   }
 
+  bool isEmail(String email) {
+    String emailRegexp =
+        r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
+
+    RegExp regExp = RegExp(emailRegexp);
+
+    return regExp.hasMatch(email);
+  }
+
+  _infoToast(String info) {
+    Fluttertoast.showToast(msg: info,
+        gravity: ToastGravity.CENTER,
+        toastLength: Toast.LENGTH_SHORT,
+        backgroundColor: WStyles.toastInfoBackgroundColor,
+        textColor: WStyles.toastInfoTextColor,
+        fontSize: WStyles.toastInfoFontSize);
+  }
+
+  _alarmToast(String alarm) {
+    Fluttertoast.showToast(msg: alarm,
+        gravity: ToastGravity.CENTER,
+        toastLength: Toast.LENGTH_LONG,
+        backgroundColor: WStyles.toastAlarmBackgroundColor,
+        textColor: WStyles.toastAlarmTextColor,
+        fontSize: WStyles.toastAlarmFontSize);
+  }
+
   _loginButton() async {
     _email = _emailController.text;
     _password = _passwordController.text;
+    if (!isEmail(_email)) {
+      _alarmToast('Invalid email!');
+      return;
+    }
     User user = await _authService.singInFirebase(_email, _password);
     if (user != null) {
-      Fluttertoast.showToast(msg: 'Signed!', toastLength: Toast.LENGTH_SHORT);
-      return ProAreaApp();
+      _infoToast('Signed Firebase!');
+    _emailController.clear();
+    _passwordController.clear();
+    } else {
+      _alarmToast("Can't sing in Firebase :(");
     }
-    Fluttertoast.showToast(msg: "Can't sing in.");
 
   }
 
@@ -221,91 +242,58 @@ class _AutorizationPageState extends State<AutorizationPage> {
     _email = _emailController.text;
     _password = _passwordController.text;
     _confirmPassword = _confirmPasswordController.text;
+
+    if (!isEmail(_email)) {
+      _alarmToast('Invalid email!');
+      return;
+    }
     if (_confirmPassword != _password) {
         _confirmPasswordController.clear();
         _passwordController.clear();
-        Fluttertoast.showToast(msg: 'Password not equal confirm string!');
+        _alarmToast('Password not equal confirm string!');
         return;
     }
     User user = await _authService.registerInFirebase(_email, _password);
     if (user != null) {
-      return ProAreaApp();
-    }
-    _emailController.clear();
-    _confirmPasswordController.clear();
-    _passwordController.clear();
-
-    return;
-  }
-
-  void _loginGoogle() async {
-    //showLoading();
-    await _googleSignIn.signIn();
-    _initLogin();
-  }
-
-  void _logOut() async {
-    //showLoading();
-      await _googleSignIn.signOut();
-      await facebookLogin.logOut();
-      await _authService.logOutFirebase();
-  }
-
-
-  void _initLogin() {
-    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) async {
-      if (account != null) {
-        print ('Account enabled with hashCode: $account.hashCode');
-        // user logged
-      } else {
-        print ('Account disabled');
-        // user NOT logged
-      }
-    });
-    _googleSignIn.signInSilently().whenComplete(() => _dismissLoading());
-  }
-
-  void _dismissLoading() {
-    String uName = _googleSignIn.currentUser.displayName.toString();
-    String uHCode = _googleSignIn.currentUser.hashCode.toString();
-    String uID = _googleSignIn.currentUser.id.toString();
-
-    print ('Dismiss Loading Name: $uName');
-    print ('Dismiss Loading hashCode: $uHCode');
-    print ('Dismiss Loading uID: $uID');
-  }
-
-  void _loginFacebook() async {
-    var facebookLoginResult =
-    await facebookLogin.logInWithReadPermissions(["email"]);
-    switch (facebookLoginResult.status) {
-      case FacebookLoginStatus.error:
-        print("FBError");
-        _onLoginStatusChanged(false);
-        break;
-      case FacebookLoginStatus.cancelledByUser:
-        print("FBCancelledByUser");
-        _onLoginStatusChanged(false);
-        break;
-      case FacebookLoginStatus.loggedIn:
-        print("FBLoggedIn");
-        final token = facebookLoginResult.accessToken.token;
-        final graphResponse = await http.get('https://graph.facebook.com/v2.12/me?fields=name,picture,email&access_token=${token}');
-        final profile = JSON.jsonDecode(graphResponse.body);
-        print(profile);
-
-        _onLoginStatusChanged(true);
-        break;
+      _infoToast('Registered Firebase!');
+      _emailController.clear();
+      _confirmPasswordController.clear();
+      _passwordController.clear();
+    } else {
+      _alarmToast("Can't register. Check email/password");
     }
   }
 
-  void _onLoginStatusChanged(bool isLoggedIn) {
-    setState(() {
-      this.isFBLoggedIn = isLoggedIn;
-    });
+  _loginGoogle() async {
+
+    User user = await _authService.loginGoogle();
+    if (user != null) {
+      _infoToast('Signed Google!');
+    } else {
+      _alarmToast("Can't sing in Google:(");
+    }
   }
 
+  _loginFacebook() async {
 
+    User user = await _authService.loginFacebook();
+    if (user != null) {
+      _infoToast('Signed Facebook!');
+    } else {
+      _alarmToast("Can't sing in Facebook:(");
+    }
+  }
+
+  _signFree() async {
+    User user = await _authService.singInFirebase(ApiKey().emailFreeUser, ApiKey().passwordFreeUser);
+
+    if (user != null) {
+      _infoToast('Signed free!');
+    } else {
+      _alarmToast("Can't sing in :(");
+    }
+
+  }
 
 }
 

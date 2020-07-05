@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutterproarea/src/weather_base_item.dart';
 
@@ -7,7 +5,6 @@ class FullDataView extends StatelessWidget {
   final WeatherDBItem fullData;
 
   FullDataView(this.fullData);
-
 
   @override
   Widget build(BuildContext context) {
@@ -31,5 +28,4 @@ class FullDataView extends StatelessWidget {
       ),
     );
   }
-
 }

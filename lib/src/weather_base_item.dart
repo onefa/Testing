@@ -5,9 +5,13 @@ import 'package:path/path.dart';
 class User {
   String outerID;
   int innerID;
+  String email;
+  String name;
 
   User.fromFirebase(FirebaseUser user) {
     outerID = user.uid;
+    email = user.email;
+    name = user.displayName;
   }
 }
 

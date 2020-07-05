@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:core';
-import 'package:flutter/cupertino.dart';
 import 'package:flutterproarea/src/weather_list.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -81,32 +80,11 @@ class DB {
                                                            where: '$field=?',
                                                            whereArgs: value,
                                                            );
-
     maps.forEach((element) {
       outList.add(WeatherDBItem.fromMap(element));
     });
-/*
-    List<int> searchID = [];
-    outList.forEach((element) {
-      if (!searchID.contains(element.cityID)) {
-        searchID.add(element.cityID);
-      }
-    });
-
-    maps = await db.query(weatherBase,
-        where: '$cityID=?',
-        whereArgs: searchID,
-    );
-    outList = [];
-    maps.forEach((element) {
-      outList.add(WeatherDBItem.fromMap(element));
-    });
-*/
     return outList;
-
   }
-
-
 
   static transferToBase(WeatherAPIData _dataFromAPI, int userID) {
     List<WeatherDBItem> _translateResult = [];
@@ -137,22 +115,18 @@ class DB {
     });
   }
 
-
   static Future<List<WeatherDBItem>> transferFromBase(int cityID) async {
     List cityIDs = [];
     cityIDs.add(cityID);
-
     return await _getfromDB(DB.cityID, cityIDs);
-
   }
 
 
- Future close() async {
+ Future clear() async {
    final db = await database;
    await db.execute(
        'DROP TABLE $weatherBase'
    );
  }
-
 
 }

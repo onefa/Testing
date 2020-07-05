@@ -117,8 +117,6 @@ class Snow{
   factory Snow.fromJson(Map<String, dynamic> json) => _$SnowFromJson(json);
 }
 
-
-
 @JsonSerializable()
 class City {
   int id;

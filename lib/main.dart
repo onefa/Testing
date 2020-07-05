@@ -8,16 +8,14 @@ or Facebook account (or press "Free" button for return to Userless application
 features)
  */
 
-
-
-
-
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:flutterproarea/src/authorization_service.dart';
 import 'package:flutterproarea/src/enter_point.dart';
 import 'package:flutterproarea/src/w_styles.dart';
+import 'package:flutterproarea/src/weather_base_item.dart';
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +27,7 @@ Future<void> main() async {
       primaryColor: WStyles.mainBackColor,
       textTheme: TextTheme(bodyText1: TextStyle(color: WStyles.lightFontColor)),
     ),
-    home: EnterPoint(),
+    home: MyApp(),
   ));
 }
 
@@ -42,6 +40,7 @@ class MyApp extends StatefulWidget {
 
 
 class _MyAppState extends State<MyApp> {
+  /*
   @override
   void initState() {
     super.initState();
@@ -54,13 +53,19 @@ class _MyAppState extends State<MyApp> {
         ));
 
   }
-
+*/
   @override
   Widget build(BuildContext context) {
-    return
-      new Center(
-        child:  Image.asset('src/images/twosecpic.png'),
+    return StreamProvider<User>.value(
+      value: AuthService().currentFirebaseUser,
+        child: EnterPoint(),
+        /*
+        Center(
+          child:  Image.asset('twosecpic.png'),
+        ),
+      */
     );
+
   }
 }
 

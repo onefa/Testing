@@ -1,10 +1,10 @@
 import 'dart:ui';
 import 'dart:convert';
+import 'package:flutterproarea/src/authorization_service.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:android_alarm_manager/android_alarm_manager.dart';
-
 import 'package:flutterproarea/src/weather_base_item.dart';
 import 'package:flutterproarea/src/weather_api_data.dart';
 import 'package:flutterproarea/src/full_data_view.dart';
@@ -40,22 +40,14 @@ Future<void> getFromAPIBackground(int cityID) async {
       // changes within DB.transferToBase on actual
       DB.transferToBase(WeatherAPIData.fromJson(weatherDataJson), WeatherList.userID);
       print('SAVED!!! UID: ' + WeatherList.userID.toString());
-
     }
-
-
   }
-
 }
-
 
 class _WeatherListState extends State<WeatherList> {
 
   List<WeatherDBItem> dataList;
-
   String language = 'ru';
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -103,12 +95,12 @@ class _WeatherListState extends State<WeatherList> {
       body: _buildList(),
 
       floatingActionButton: FloatingActionButton.extended(
-        label: Text('User'),
-        onPressed: () => _changeUser(),
-      ),
+        label: Text('LogOUT'),
+        onPressed: () => AuthService().logOutFirebase(),
+      )
+
     );
   }
-
 
   _loadWeather() async {
 
@@ -136,38 +128,31 @@ class _WeatherListState extends State<WeatherList> {
     }
     WeatherList.apiAlarmID = WeatherList.cityID;
     await AndroidAlarmManager.periodic(Duration(seconds: 10), WeatherList.apiAlarmID, getFromAPIBackground);
-    getData();
+    _getData();
 
   }
 
 
-  getData() async {
+  _getData() async {
     List<WeatherDBItem> listFromBase = await DB.transferFromBase(WeatherList.cityID);
 
     listFromBase.forEach((element) {
       print('GET DATA: ' + element.toMap().toString());
     });
 
-
     dataList = [];
     setState(() {
       dataList.addAll(listFromBase);
     });
-
-  }
+ }
 
   _changeCity(String cityName) {
     WeatherList.cityName = cityName;
-    getData();
+    _getData();
     _loadWeather();
   }
 
-  _changeUser() {
-    return null;
-  }
-
   _changeLanguage() {
-//    DB.db.close();
     language == 'ru' ? language = 'en' : language = 'ru';
     _loadWeather();
   }
@@ -194,7 +179,6 @@ class _WeatherListState extends State<WeatherList> {
           }
       );
   }
-
 
 }
 
