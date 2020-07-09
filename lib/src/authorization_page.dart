@@ -2,13 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterproarea/src/api_key.dart';
 import 'package:flutterproarea/src/authorization_service.dart';
+import 'package:flutterproarea/src/enter_point.dart';
 import 'package:flutterproarea/src/weather_base_item.dart';
+import 'package:flutterproarea/src/weather_list.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutterproarea/src/w_styles.dart';
 
 
 class AutorizationPage extends StatefulWidget {
-  AutorizationPage({Key key}) : super (key: key);
 
   @override
   _AutorizationPageState createState() => _AutorizationPageState();
@@ -29,12 +30,13 @@ class _AutorizationPageState extends State<AutorizationPage> {
   String _password;
   String _confirmPassword;
   bool showLogin = true;
-  //bool isFBLoggedIn = false;
   AuthService _authService = AuthService();
 
 
   @override
   Widget build(BuildContext context) {
+
+    if (EnterPoint.freeUser != null) return WeatherList();
 
     return Scaffold(
       backgroundColor: WStyles.mainBackColor,
@@ -79,7 +81,7 @@ class _AutorizationPageState extends State<AutorizationPage> {
         ],
       ),
 
-    persistentFooterButtons: <Widget>[
+     persistentFooterButtons: <Widget>[
       RaisedButton (
         child: Text('Free', style: WStyles.buttonLightTextStyle,),
         color: WStyles.buttonBackColor,
@@ -159,7 +161,7 @@ class _AutorizationPageState extends State<AutorizationPage> {
         obscureText: obscure,
         style: WStyles.inputFieldTextStyle,
         decoration: InputDecoration(
-          hintStyle: WStyles.inputFieldHintTextStyle,
+          hintStyle: WStyles.hintLightTextStyle,
           hintText: hint,
           focusedBorder: OutlineInputBorder(
             borderSide: WStyles.borderFocusSide
@@ -227,7 +229,7 @@ class _AutorizationPageState extends State<AutorizationPage> {
       _alarmToast('Invalid email!');
       return;
     }
-    User user = await _authService.singInFirebase(_email, _password);
+    DBUser user = await _authService.singInFirebase(_email, _password);
     if (user != null) {
       _infoToast('Signed Firebase!');
     _emailController.clear();
@@ -248,12 +250,12 @@ class _AutorizationPageState extends State<AutorizationPage> {
       return;
     }
     if (_confirmPassword != _password) {
-        _confirmPasswordController.clear();
-        _passwordController.clear();
-        _alarmToast('Password not equal confirm string!');
-        return;
+      _confirmPasswordController.clear();
+      _passwordController.clear();
+      _alarmToast('Password not equal confirm string!');
+      return;
     }
-    User user = await _authService.registerInFirebase(_email, _password);
+    DBUser user = await _authService.registerInFirebase(_email, _password);
     if (user != null) {
       _infoToast('Registered Firebase!');
       _emailController.clear();
@@ -266,7 +268,7 @@ class _AutorizationPageState extends State<AutorizationPage> {
 
   _loginGoogle() async {
 
-    User user = await _authService.loginGoogle();
+    DBUser user = await _authService.loginGoogle();
     if (user != null) {
       _infoToast('Signed Google!');
     } else {
@@ -276,7 +278,7 @@ class _AutorizationPageState extends State<AutorizationPage> {
 
   _loginFacebook() async {
 
-    User user = await _authService.loginFacebook();
+    DBUser user = await _authService.loginFacebook();
     if (user != null) {
       _infoToast('Signed Facebook!');
     } else {
@@ -285,13 +287,14 @@ class _AutorizationPageState extends State<AutorizationPage> {
   }
 
   _signFree() async {
-    User user = await _authService.singInFirebase(ApiKey().emailFreeUser, ApiKey().passwordFreeUser);
 
-    if (user != null) {
-      _infoToast('Signed free!');
-    } else {
-      _alarmToast("Can't sing in :(");
-    }
+    DBUser user = await _authService.singInFirebase(ApiKey().emailNotAUser, ApiKey().passwordNotAUser);
+
+    _infoToast('Signed free!');
+    setState(() {
+      EnterPoint.freeUser = DBUser (outerID: ApiKey().outerIDNotAUser,
+          userEmail: ApiKey().emailNotAUser);
+    });
 
   }
 

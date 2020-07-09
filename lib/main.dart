@@ -1,72 +1,60 @@
-/*
-All application features is available with registration and sign in.
-While user not signed in, background monitoring and saving weather forecast
-not available.
-Until user == null, only current weather forecast feature would be present.
-If "User" button pressed, customer can sign in with email/password, Google
-or Facebook account (or press "Free" button for return to Userless application
-features)
- */
-
 import 'dart:async';
+import 'package:animated_splash_screen/animated_splash_screen.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:android_alarm_manager/android_alarm_manager.dart';
+import 'package:bot_toast/bot_toast.dart';
 import 'package:flutterproarea/src/authorization_service.dart';
 import 'package:flutterproarea/src/enter_point.dart';
-import 'package:flutterproarea/src/w_styles.dart';
+import 'package:flutterproarea/src/fcm.dart';
 import 'package:flutterproarea/src/weather_base_item.dart';
-import 'package:provider/provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AndroidAlarmManager.initialize();
 
+
   runApp(new MaterialApp(
+    debugShowCheckedModeBanner: false,
     title: 'WeatherBase',
-    theme: ThemeData(
-      primaryColor: WStyles.mainBackColor,
-      textTheme: TextTheme(bodyText1: TextStyle(color: WStyles.lightFontColor)),
-    ),
-    home: MyApp(),
-  ));
+    builder: BotToastInit(),
+    navigatorObservers: [BotToastNavigatorObserver()],
+    home: AnimatedSplashScreen(
+            centered: true,
+            splash: Image.asset('twosecpic.png'),
+            nextScreen: MyApp(),
+            duration: 2000,
+          )
+    )
+  );
 }
 
-
 class MyApp extends StatefulWidget {
+  static List<int> alarmAPISavedCities = [];
+  static final maxSavedCities = 7;
+  static final loadNewForecastMinutes = 30;
   @override
   _MyAppState createState() => new _MyAppState();
 
 }
 
-
 class _MyAppState extends State<MyApp> {
-  /*
+
   @override
   void initState() {
     super.initState();
-
-    new Future.delayed(
-        const Duration(seconds: 2),
-            () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => EnterPoint()),
-        ));
-
+    FCM().initMessaging();
   }
-*/
+
   @override
   Widget build(BuildContext context) {
-    return StreamProvider<User>.value(
+    return StreamProvider<DBUser>.value(
       value: AuthService().currentFirebaseUser,
-        child: EnterPoint(),
-        /*
-        Center(
-          child:  Image.asset('twosecpic.png'),
-        ),
-      */
+      child: EnterPoint(),
     );
-
   }
+
 }
 
 

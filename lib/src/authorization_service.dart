@@ -13,65 +13,55 @@ class AuthService {
   FacebookLogin facebookLogin = FacebookLogin();
 
 
-  Future<User> singInFirebase (String email, String password) async {
-
+  Future<DBUser> singInFirebase (String email, String password) async {
     try {
       AuthResult result = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
       FirebaseUser user = result.user;
-      return User.fromFirebase(user);
+      return DBUser.fromFirebase(user);
     } catch(e) {
       print(e);
       return null;
     }
-
   }
 
-  Future<User> registerInFirebase (String email, String password) async {
-
+  Future<DBUser> registerInFirebase (String email, String password) async {
     try {
       AuthResult result = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
       FirebaseUser user = result.user;
-      return User.fromFirebase(user);
+      return DBUser.fromFirebase(user);
     } catch(e) {
       print(e);
       return null;
     }
-
   }
 
-  Future<User> loginGoogle() async {
+  Future<DBUser> loginGoogle() async {
     final GoogleSignInAccount googleSignInAccount = await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleSignInAuthentication =
     await googleSignInAccount.authentication;
-
     final AuthCredential credential =
     GoogleAuthProvider.getCredential(idToken: googleSignInAuthentication.idToken,
         accessToken: googleSignInAuthentication.accessToken);
-
     try {
       final AuthResult authResult = await _firebaseAuth.signInWithCredential(credential);
       FirebaseUser user = authResult.user;
-      return User.fromFirebase(user);
+      return DBUser.fromFirebase(user);
     } catch(e) {
       print(e);
       return null;
     }
-
   }
 
-  Future<User> loginFacebook() async {
+  Future<DBUser> loginFacebook() async {
     var facebookLoginResult =
     await facebookLogin.logIn(['email']);
-
     if (facebookLoginResult.status == FacebookLoginStatus.loggedIn) {
-
         final token = facebookLoginResult.accessToken.token;
         final credential = FacebookAuthProvider.getCredential(accessToken: token);
-
         try {
           final AuthResult authResult = await _firebaseAuth.signInWithCredential(credential);
           FirebaseUser user = authResult.user;
-          return User.fromFirebase(user);
+          return DBUser.fromFirebase(user);
         } catch(e) {
           print(e);
           return null;
@@ -88,9 +78,12 @@ class AuthService {
     await _firebaseAuth.signOut();
   }
 
-  Stream<User> get currentFirebaseUser {
+  Stream<DBUser> get currentFirebaseUser {
     return _firebaseAuth.onAuthStateChanged
-        .map((FirebaseUser user) => user != null ? User.fromFirebase(user) : null );
+        .map((FirebaseUser user) => user != null ? DBUser.fromFirebase(user) : null );
   }
+
+
+
 
 }
